@@ -1,14 +1,21 @@
-import { Controller, Post, Put } from '@nestjs/common';
+import { Controller, Post, Put, Body, Param } from '@nestjs/common';
 
 @Controller('drivers')
 export class DriversController {
-  @Put('finish-ride')
-  putStarRide() {
-    return 'Finish Ride';
+  @Put('finish-ride/:id')
+  putFinishRide(@Param('id') id: number, @Body() payload: any) {
+    return {
+      id,
+      payload,
+      message: 'Finish Ride',
+    };
   }
 
   @Post('charge-ride')
-  postRide() {
-    return 'Charge Ride';
+  postRide(@Body() payload: any) {
+    return {
+      message: 'Create a charging',
+      payload,
+    };
   }
 }

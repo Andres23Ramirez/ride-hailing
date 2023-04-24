@@ -1,19 +1,29 @@
-import { Controller, Post, Put } from '@nestjs/common';
+import { Controller, Post, Put, Body, Param } from '@nestjs/common';
 
 @Controller('riders')
 export class RidersController {
   @Post('payment-source')
-  postPaymentSource() {
-    return 'Create a Payment Source';
+  createPaymentSource(@Body() payload: any) {
+    return {
+      message: 'Create a Payment Source',
+      payload,
+    };
   }
 
   @Post('ride')
-  postRide() {
-    return 'Create a Ride';
+  postRide(@Body() payload: any) {
+    return {
+      message: 'Create a Ride',
+      payload,
+    };
   }
 
-  @Put('start-ride')
-  putStarRide() {
-    return 'Start Ride';
+  @Put('start-ride/:id')
+  putStarRide(@Param('id') id: number, @Body() payload: any) {
+    return {
+      id,
+      payload,
+      message: 'Start Ride',
+    };
   }
 }
