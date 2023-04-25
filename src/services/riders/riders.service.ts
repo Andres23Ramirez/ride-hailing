@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { Ride } from 'src/entities/ride.entity';
 import { Driver } from 'src/entities/driver.entity';
 import { Rider } from 'src/entities/rider.entity';
@@ -50,7 +50,9 @@ export class RidersService {
   ): Ride {
     const driver = this.findAvailableDriver();
     if (!driver) {
-      throw new Error('No available drivers at the moment');
+      throw new UnprocessableEntityException(
+        'No available drivers at the moment',
+      );
     }
 
     const ride: Ride = {
@@ -65,6 +67,9 @@ export class RidersService {
       startTime: new Date(),
       endTime: new Date(),
     };
+    if (!ride) {
+      throw new UnprocessableEntityException('Ride could not create');
+    }
 
     this.rides.push(ride);
 
