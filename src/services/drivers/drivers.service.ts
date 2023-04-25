@@ -3,6 +3,7 @@ import {
   UnprocessableEntityException,
   NotFoundException,
 } from '@nestjs/common';
+import { FinishRideDto } from 'src/dtos/drivers.dto';
 import { Ride } from '../../entities/ride.entity';
 import { RideStatus } from '../../enums/RideStatus';
 
@@ -49,8 +50,7 @@ export class DriversService {
 
   finishRide(
     rideId: number,
-    endLocationLat: number,
-    endLocationLng: number,
+    { endLocationLat, endLocationLng }: FinishRideDto,
   ): number {
     const ride = this.getRideById(rideId);
 

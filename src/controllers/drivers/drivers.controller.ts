@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
+import { FinishRideDto } from 'src/dtos/drivers.dto';
 import { DriversService } from '../../services/drivers/drivers.service';
 
 @Controller('drivers')
@@ -15,14 +16,9 @@ export class DriversController {
   @Put('finish-ride/:id')
   putFinishRide(
     @Param('id', ParseIntPipe) id: number,
-    @Body('endLocationLat') endLocationLat: number,
-    @Body('endLocationLng') endLocationLng: number,
+    @Body() payload: FinishRideDto,
   ): { success: boolean; message: string } {
-    const total = this.driversService.finishRide(
-      id,
-      endLocationLat,
-      endLocationLng,
-    );
+    const total = this.driversService.finishRide(id, payload);
     return {
       success: true,
       message: `Ride with id ${id} finished. Total cost: $${total}`,
