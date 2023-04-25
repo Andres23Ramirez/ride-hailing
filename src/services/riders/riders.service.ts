@@ -2,6 +2,7 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { Ride } from 'src/entities/ride.entity';
 import { Driver } from 'src/entities/driver.entity';
 import { Rider } from 'src/entities/rider.entity';
+import { RequestRideDto } from 'src/dtos/riders.dto';
 
 @Injectable()
 export class RidersService {
@@ -41,19 +42,21 @@ export class RidersService {
     },
   ];
 
-  requestRide(
-    startLocationLat: number,
-    startLocationLng: number,
-    endLocationLat: number,
-    endLocationLng: number,
-    riderId: number,
-  ): Ride {
+  requestRide(payload: RequestRideDto): Ride {
     const driver = this.findAvailableDriver();
     if (!driver) {
       throw new UnprocessableEntityException(
         'No available drivers at the moment',
       );
     }
+
+    const {
+      startLocationLat,
+      startLocationLng,
+      endLocationLat,
+      endLocationLng,
+      riderId,
+    } = payload;
 
     const ride: Ride = {
       id: this.rides.length + 1,

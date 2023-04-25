@@ -1,4 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
+import { RequestRideDto } from 'src/dtos/riders.dto';
 import { Ride } from '../../entities/ride.entity';
 import { RidersService } from '../../services/riders/riders.service';
 
@@ -15,19 +16,7 @@ export class RidersController {
   }
 
   @Post('/rides')
-  requestRide(
-    @Body('startLocationLat') startLocationLat: number,
-    @Body('startLocationLng') startLocationLng: number,
-    @Body('endLocationLat') endLocationLat: number,
-    @Body('endLocationLng') endLocationLng: number,
-    @Body('riderId') riderId: number,
-  ): Ride {
-    return this.ridersService.requestRide(
-      startLocationLat,
-      startLocationLng,
-      endLocationLat,
-      endLocationLng,
-      riderId,
-    );
+  requestRide(@Body() payload: RequestRideDto): Ride {
+    return this.ridersService.requestRide(payload);
   }
 }

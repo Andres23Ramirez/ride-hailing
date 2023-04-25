@@ -1,4 +1,4 @@
 export class FinishRideDto {
-  endLocationLat: number;
-  endLocationLng: number;
+  readonly endLocationLat: number;
+  readonly endLocationLng: number;
 }
