@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Body, Param } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { Ride } from '../../entities/ride.entity';
 import { RidersService } from '../../services/riders/riders.service';
 
@@ -29,14 +29,5 @@ export class RidersController {
       endLocationLng,
       riderId,
     );
-  }
-
-  @Put('start-ride/:id')
-  putStarRide(@Param('id') id: number, @Body() payload: any) {
-    return {
-      id,
-      payload,
-      message: 'Start Ride',
-    };
   }
 }

@@ -1,4 +1,11 @@
-import { Controller, Post, Put, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Put,
+  Body,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { DriversService } from '../../services/drivers/drivers.service';
 
 @Controller('drivers')
@@ -7,7 +14,7 @@ export class DriversController {
 
   @Put('finish-ride/:id')
   putFinishRide(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body('endLocationLat') endLocationLat: number,
     @Body('endLocationLng') endLocationLng: number,
   ): { success: boolean; message: string } {

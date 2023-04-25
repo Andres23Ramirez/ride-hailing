@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  UnprocessableEntityException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Ride } from '../../entities/ride.entity';
 import { RideStatus } from '../../enums/RideStatus';
 
@@ -51,11 +55,13 @@ export class DriversService {
     const ride = this.getRideById(rideId);
 
     if (!ride) {
-      throw new Error(`Ride with id ${rideId} not found`);
+      throw new NotFoundException(`Ride with id ${rideId} not found`);
     }
 
     if (ride.status === RideStatus.Finished) {
-      throw new Error(`Ride with id ${rideId} is already finished`);
+      throw new UnprocessableEntityException(
+        `Ride with id ${rideId} is already finished`,
+      );
     }
 
     ride.endLocationLat = endLocationLat;
@@ -76,7 +82,7 @@ export class DriversService {
   }
 
   private getRideById(rideId: number): Ride {
-    const ride = this.rides.find((ride) => ride.id == rideId);
+    const ride = this.rides.find((ride) => ride.id === rideId);
     return ride;
   }
 
