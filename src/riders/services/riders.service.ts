@@ -123,9 +123,9 @@ export class RidersService {
   createPaymentSource(
     payload: PaymentSourceDto,
   ): Observable<PaymentSourceResponse> {
-    const url = `${this.configAppService.wompiBaseUrl}payment_sources`;
+    const url = `${this.configAppService.baseUrl}payment_sources`;
     const headers = {
-      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      Authorization: `Bearer ${this.configAppService.secretKey}`,
       'Content-Type': 'application/json',
     };
 
@@ -164,9 +164,9 @@ export class RidersService {
   }
 
   private getAcceptanceToken(): Observable<any> {
-    const url = `${this.configAppService.wompiBaseUrl}merchants/${this.configAppService.wompiPublicKey}`;
+    const url = `${this.configAppService.baseUrl}merchants/${this.configAppService.publicKey}`;
     const headers = {
-      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      Authorization: `Bearer ${this.configAppService.secretKey}`,
       'Content-Type': 'application/json',
     };
 

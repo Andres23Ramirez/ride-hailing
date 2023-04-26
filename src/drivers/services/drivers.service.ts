@@ -72,9 +72,9 @@ export class DriversService {
       paymentSourceId,
       customerEmail,
     );
-    const url = `${this.configAppService.wompiBaseUrl}transactions`;
+    const url = `${this.configAppService.baseUrl}transactions`;
     const headers = {
-      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      Authorization: `Bearer ${this.configAppService.secretKey}`,
       'Content-Type': 'application/json',
     };
 
