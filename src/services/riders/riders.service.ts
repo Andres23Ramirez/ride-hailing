@@ -1,8 +1,14 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { Ride } from 'src/entities/ride.entity';
 import { Driver } from 'src/entities/driver.entity';
 import { Rider } from 'src/entities/rider.entity';
 import { RequestRideDto } from 'src/dtos/riders.dto';
+import { PaymentSourceDto } from 'src/dtos/paymentSourceResponse.dto';
+import { PaymentSourceResponse } from 'src/interfaces/paymentSource.interface';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { ConfigAppService } from 'src/config/config.service';
 
 @Injectable()
 export class RidersService {
@@ -42,6 +48,11 @@ export class RidersService {
     },
   ];
 
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configAppService: ConfigAppService,
+  ) {}
+
   requestRide(payload: RequestRideDto): Ride {
     const driver = this.findAvailableDriver();
     if (!driver) {
@@ -77,6 +88,54 @@ export class RidersService {
     this.rides.push(ride);
 
     return ride;
+  }
+
+  private getAcceptanceToken(): Observable<any> {
+    const url = `${this.configAppService.wompiBaseUrl}merchants/${this.configAppService.wompiPublicKey}`;
+    const headers = {
+      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      'Content-Type': 'application/json',
+    };
+
+    return this.httpService.get(url, { headers }).pipe(
+      map(
+        (response) =>
+          response?.data?.data?.presigned_acceptance?.acceptance_token,
+      ),
+      catchError((error) =>
+        throwError(
+          () => new UnprocessableEntityException(error.response?.data?.error),
+        ),
+      ),
+    );
+  }
+
+  createPaymentSource(
+    payload: PaymentSourceDto,
+  ): Observable<PaymentSourceResponse> {
+    const url = `${this.configAppService.wompiBaseUrl}payment_sources`;
+    const headers = {
+      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      'Content-Type': 'application/json',
+    };
+
+    // Mezclando el payload con el acceptance_token obtenido
+    return this.getAcceptanceToken().pipe(
+      map((acceptanceToken) => ({
+        ...payload,
+        acceptance_token: acceptanceToken,
+      })),
+      map((payloadWithAcceptanceToken) =>
+        this.httpService.post(url, payloadWithAcceptanceToken, { headers }),
+      ),
+      switchMap((response) => response),
+      map((response) => response?.data),
+      catchError((error) =>
+        throwError(
+          () => new UnprocessableEntityException(error.response?.data?.error),
+        ),
+      ),
+    );
   }
 
   private findAvailableDriver(): Driver {

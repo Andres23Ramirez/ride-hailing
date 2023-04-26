@@ -1,5 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { RequestRideDto } from 'src/dtos/riders.dto';
+import { PaymentSourceDto } from 'src/dtos/paymentSourceResponse.dto';
 import { Ride } from '../../entities/ride.entity';
 import { RidersService } from '../../services/riders/riders.service';
 
@@ -8,11 +9,8 @@ export class RidersController {
   constructor(private readonly ridersService: RidersService) {}
 
   @Post('payment-source')
-  createPaymentSource(@Body() payload: any) {
-    return {
-      message: 'Create a Payment Source',
-      payload,
-    };
+  createPaymentSource(@Body() payload: PaymentSourceDto) {
+    return this.ridersService.createPaymentSource(payload);
   }
 
   @Post('/rides')
