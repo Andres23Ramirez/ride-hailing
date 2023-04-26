@@ -1,11 +1,17 @@
 import {
   Injectable,
-  UnprocessableEntityException,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { FinishRideDto } from 'src/dtos/drivers.dto';
+import { Rider } from 'src/entities/rider.entity';
 import { Ride } from '../../entities/ride.entity';
 import { RideStatus } from '../../enums/RideStatus';
+import { ConfigAppService } from 'src/config/config.service';
+import { TransactionDto } from 'src/dtos/transactions.dto';
+import { TransactionResponse } from 'src/interfaces/transactionResponse.interface';
+import { catchError, Observable, throwError, map } from 'rxjs';
 
 @Injectable()
 export class DriversService {
@@ -42,32 +48,38 @@ export class DriversService {
       endLocationLng: -74.05,
       riderId: 1,
       driverId: 2,
-      status: 'InProgress',
+      status: 'Finished',
       startTime: new Date('2022-05-01T14:00:00Z'),
       endTime: null,
     },
   ];
+  private riders: Rider[] = [
+    {
+      id: 1,
+      firstName: 'Pedro',
+      lastName: 'Pérez',
+      email: 'pepito_perezasadaqwef@example.com',
+      phoneNumber: '555-9876',
+      paymentSourceId: 53239,
+    },
+  ];
+
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configAppService: ConfigAppService,
+  ) {}
 
   finishRide(
-    rideId: number,
+    driverId: number,
     { endLocationLat, endLocationLng }: FinishRideDto,
-  ): number {
-    const ride = this.getRideById(rideId);
+  ): Observable<TransactionResponse> {
+    const ride = this.getRideByDriverId(driverId);
 
     if (!ride) {
-      throw new NotFoundException(`Ride with id ${rideId} not found`);
-    }
-
-    if (ride.status === RideStatus.Finished) {
-      throw new UnprocessableEntityException(
-        `Ride with id ${rideId} is already finished`,
+      throw new NotFoundException(
+        `Driver with id ${driverId} don't have rides started`,
       );
     }
-
-    ride.endLocationLat = endLocationLat;
-    ride.endLocationLng = endLocationLng;
-    ride.status = RideStatus.Finished;
-    ride.endTime = new Date();
 
     const distance = this.calculateDistance(
       ride.startLocationLat,
@@ -76,14 +88,85 @@ export class DriversService {
       endLocationLng,
     );
     const duration = this.calculateDuration(ride.startTime, ride.endTime);
-    const total = this.calculateTotal(distance, duration);
+    const amountInCents = Math.round(this.calculateTotal(distance, duration));
+    const paymentSourceId = this.getPaymentSourceIdByRiderId(ride.riderId);
+    const customerEmail = this.getRiderById(ride.riderId).email;
+    const payload = this.getPayload(
+      amountInCents,
+      paymentSourceId,
+      customerEmail,
+    );
+    const url = `${this.configAppService.wompiBaseUrl}transactions`;
+    const headers = {
+      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      'Content-Type': 'application/json',
+    };
 
-    return total;
+    ride.endLocationLat = endLocationLat;
+    ride.endLocationLng = endLocationLng;
+    ride.status = RideStatus.Finished;
+    ride.endTime = new Date();
+
+    const response = this.httpService.post(url, payload, { headers }).pipe(
+      map((response) => response?.data),
+      catchError((error) =>
+        throwError(
+          () => new UnprocessableEntityException(error.response?.data?.error),
+        ),
+      ),
+    );
+
+    return response;
+  }
+
+  private getPayload(
+    amountInCents: number,
+    paymentSourceId: number,
+    customer_email: string,
+  ): TransactionDto {
+    return {
+      amount_in_cents: amountInCents,
+      currency: 'COP',
+      customer_email,
+      payment_method: { installments: 1 },
+      reference: (Math.random() + 1).toString(36).substring(7),
+      payment_source_id: paymentSourceId,
+    };
+  }
+
+  private getPaymentSourceIdByRiderId(riderId: number): number {
+    const rider = this.riders.find((rider) => rider.id === riderId);
+
+    if (!rider) {
+      throw new NotFoundException(`Rider with id ${riderId} not found`);
+    }
+
+    return rider.paymentSourceId;
+  }
+
+  private getRideByDriverId(driverId: number): Ride {
+    const ride = this.rides.find(
+      (ride) =>
+        ride.driverId === driverId && ride.status === RideStatus.Started,
+    );
+
+    if (!ride) {
+      throw new NotFoundException(
+        `Driver with id ${driverId} don't have rides started`,
+      );
+    }
+
+    return ride;
   }
 
   private getRideById(rideId: number): Ride {
     const ride = this.rides.find((ride) => ride.id === rideId);
     return ride;
+  }
+
+  private getRiderById(riderId: number): Rider {
+    const rider = this.riders.find((rider) => rider.id === riderId);
+    return rider;
   }
 
   private calculateDistance(
@@ -126,6 +209,6 @@ export class DriversService {
     const distanceFee = distanceInKm * 1000;
     const durationFee = durationInMinutes * 200;
 
-    return distanceFee + durationFee + 3500;
+    return (distanceFee + durationFee + 3500) * 100;
   }
 }

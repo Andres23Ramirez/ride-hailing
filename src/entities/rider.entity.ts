@@ -4,4 +4,5 @@ export class Rider {
   lastName: string;
   email: string;
   phoneNumber: string;
+  paymentSourceId: number;
 }
