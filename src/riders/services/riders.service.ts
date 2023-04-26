@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Ride } from 'src/riders/entities/ride.entity';
 import { Driver } from 'src/drivers/entities/driver.entity';
@@ -9,51 +13,75 @@ import { PaymentSourceResponse } from 'src/riders/interfaces/paymentSource.inter
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { ConfigAppService } from 'src/config/config.service';
+import { RideStatus } from 'src/enums/RideStatus';
+
+import { DriversService } from 'src/drivers/services/drivers.service';
 
 @Injectable()
 export class RidersService {
-  private rides: Ride[] = [];
-  private drivers: Driver[] = [
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configAppService: ConfigAppService,
+    private readonly driversService: DriversService,
+  ) {}
+
+  private rides: Ride[] = [
     {
       id: 1,
-      firstName: 'Juan',
-      lastName: 'Pérez',
-      email: 'juan.perez@example.com',
-      phoneNumber: '555-1234',
-      rating: 4.5,
+      startLocationLat: 4.65,
+      startLocationLng: -74.05,
+      endLocationLat: 4.6,
+      endLocationLng: -74.08,
+      riderId: 1,
+      driverId: 2,
+      status: 'Started',
+      startTime: new Date('2022-05-01T12:00:00Z'),
+      endTime: new Date('2022-05-01T12:30:00Z'),
     },
     {
       id: 2,
-      firstName: 'Maria',
-      lastName: 'Gonzalez',
-      email: 'maria.gonzalez@example.com',
-      phoneNumber: '555-5678',
-      rating: 4.8,
+      startLocationLat: 4.7,
+      startLocationLng: -74.05,
+      endLocationLat: 4.8,
+      endLocationLng: -74.1,
+      riderId: 2,
+      driverId: 1,
+      status: 'Finished',
+      startTime: new Date('2022-05-01T13:00:00Z'),
+      endTime: new Date('2022-05-01T13:30:00Z'),
+    },
+    {
+      id: 3,
+      startLocationLat: 4.6,
+      startLocationLng: -74.1,
+      endLocationLat: 4.55,
+      endLocationLng: -74.05,
+      riderId: 1,
+      driverId: 2,
+      status: 'Finished',
+      startTime: new Date('2022-05-01T14:00:00Z'),
+      endTime: null,
     },
   ];
   private riders: Rider[] = [
     {
       id: 1,
       firstName: 'Pedro',
-      lastName: 'Ramírez',
-      email: 'pedro.ramirez@example.com',
+      lastName: 'Pérez',
+      email: 'pepito_perezasadaqwef@example.com',
       phoneNumber: '555-9876',
       paymentSourceId: 53239,
     },
-    {
-      id: 2,
-      firstName: 'Ana',
-      lastName: 'Martinez',
-      email: 'ana.martinez@example.com',
-      phoneNumber: '555-4321',
-      paymentSourceId: 53239,
-    },
   ];
+  private drivers: Driver[] = this.driversService.getAllDrivers();
 
-  constructor(
-    private readonly httpService: HttpService,
-    private readonly configAppService: ConfigAppService,
-  ) {}
+  getAllRides() {
+    return this.rides;
+  }
+
+  getAllRiders() {
+    return this.riders;
+  }
 
   requestRide(payload: RequestRideDto): Ride {
     const driver = this.findAvailableDriver();
@@ -118,6 +146,21 @@ export class RidersService {
         ),
       ),
     );
+  }
+
+  getRideByDriverId(driverId: number): Ride {
+    const ride = this.rides.find(
+      (ride) =>
+        ride.driverId === driverId && ride.status === RideStatus.Started,
+    );
+
+    if (!ride) {
+      throw new NotFoundException(
+        `Driver with id ${driverId} don't have rides started`,
+      );
+    }
+
+    return ride;
   }
 
   private getAcceptanceToken(): Observable<any> {

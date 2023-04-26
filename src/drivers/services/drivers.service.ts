@@ -13,67 +13,43 @@ import { TransactionDto } from 'src/drivers/dtos/transactions.dto';
 import { TransactionResponse } from 'src/drivers/interfaces/transactionResponse.interface';
 import { catchError, Observable, throwError, map } from 'rxjs';
 
+import { RidersService } from 'src/riders/services/riders.service';
+import { Driver } from '../entities/driver.entity';
+
 @Injectable()
 export class DriversService {
-  private rides: Ride[] = [
-    {
-      id: 1,
-      startLocationLat: 4.65,
-      startLocationLng: -74.05,
-      endLocationLat: 4.6,
-      endLocationLng: -74.08,
-      riderId: 1,
-      driverId: 2,
-      status: 'Started',
-      startTime: new Date('2022-05-01T12:00:00Z'),
-      endTime: new Date('2022-05-01T12:30:00Z'),
-    },
-    {
-      id: 2,
-      startLocationLat: 4.7,
-      startLocationLng: -74.05,
-      endLocationLat: 4.8,
-      endLocationLng: -74.1,
-      riderId: 2,
-      driverId: 1,
-      status: 'Finished',
-      startTime: new Date('2022-05-01T13:00:00Z'),
-      endTime: new Date('2022-05-01T13:30:00Z'),
-    },
-    {
-      id: 3,
-      startLocationLat: 4.6,
-      startLocationLng: -74.1,
-      endLocationLat: 4.55,
-      endLocationLng: -74.05,
-      riderId: 1,
-      driverId: 2,
-      status: 'Finished',
-      startTime: new Date('2022-05-01T14:00:00Z'),
-      endTime: null,
-    },
-  ];
-  private riders: Rider[] = [
-    {
-      id: 1,
-      firstName: 'Pedro',
-      lastName: 'Pérez',
-      email: 'pepito_perezasadaqwef@example.com',
-      phoneNumber: '555-9876',
-      paymentSourceId: 53239,
-    },
-  ];
-
   constructor(
     private readonly httpService: HttpService,
     private readonly configAppService: ConfigAppService,
+    private readonly ridersService: RidersService,
   ) {}
+
+  private riders: Rider[] = this.ridersService.getAllRiders();
+  private rides: Ride[] = this.ridersService.getAllRides();
+  private drivers: Driver[] = [
+    {
+      id: 1,
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      email: 'juan.perez@example.com',
+      phoneNumber: '555-1234',
+      rating: 4.5,
+    },
+    {
+      id: 2,
+      firstName: 'Maria',
+      lastName: 'Gonzalez',
+      email: 'maria.gonzalez@example.com',
+      phoneNumber: '555-5678',
+      rating: 4.8,
+    },
+  ];
 
   finishRide(
     driverId: number,
     { endLocationLat, endLocationLng }: FinishRideDto,
   ): Observable<TransactionResponse> {
-    const ride = this.getRideByDriverId(driverId);
+    const ride = this.ridersService.getRideByDriverId(driverId);
 
     if (!ride) {
       throw new NotFoundException(
@@ -119,6 +95,10 @@ export class DriversService {
     return response;
   }
 
+  getAllDrivers() {
+    return this.drivers;
+  }
+
   private getPayload(
     amountInCents: number,
     paymentSourceId: number,
@@ -142,26 +122,6 @@ export class DriversService {
     }
 
     return rider.paymentSourceId;
-  }
-
-  private getRideByDriverId(driverId: number): Ride {
-    const ride = this.rides.find(
-      (ride) =>
-        ride.driverId === driverId && ride.status === RideStatus.Started,
-    );
-
-    if (!ride) {
-      throw new NotFoundException(
-        `Driver with id ${driverId} don't have rides started`,
-      );
-    }
-
-    return ride;
-  }
-
-  private getRideById(rideId: number): Ride {
-    const ride = this.rides.find((ride) => ride.id === rideId);
-    return ride;
   }
 
   private getRiderById(riderId: number): Rider {
