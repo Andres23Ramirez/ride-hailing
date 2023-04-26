@@ -38,6 +38,7 @@ export class RidersService {
       lastName: 'Ramírez',
       email: 'pedro.ramirez@example.com',
       phoneNumber: '555-9876',
+      paymentSourceId: 53239,
     },
     {
       id: 2,
@@ -45,6 +46,7 @@ export class RidersService {
       lastName: 'Martinez',
       email: 'ana.martinez@example.com',
       phoneNumber: '555-4321',
+      paymentSourceId: 53239,
     },
   ];
 
@@ -90,26 +92,6 @@ export class RidersService {
     return ride;
   }
 
-  private getAcceptanceToken(): Observable<any> {
-    const url = `${this.configAppService.wompiBaseUrl}merchants/${this.configAppService.wompiPublicKey}`;
-    const headers = {
-      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
-      'Content-Type': 'application/json',
-    };
-
-    return this.httpService.get(url, { headers }).pipe(
-      map(
-        (response) =>
-          response?.data?.data?.presigned_acceptance?.acceptance_token,
-      ),
-      catchError((error) =>
-        throwError(
-          () => new UnprocessableEntityException(error.response?.data?.error),
-        ),
-      ),
-    );
-  }
-
   createPaymentSource(
     payload: PaymentSourceDto,
   ): Observable<PaymentSourceResponse> {
@@ -130,6 +112,26 @@ export class RidersService {
       ),
       switchMap((response) => response),
       map((response) => response?.data),
+      catchError((error) =>
+        throwError(
+          () => new UnprocessableEntityException(error.response?.data?.error),
+        ),
+      ),
+    );
+  }
+
+  private getAcceptanceToken(): Observable<any> {
+    const url = `${this.configAppService.wompiBaseUrl}merchants/${this.configAppService.wompiPublicKey}`;
+    const headers = {
+      Authorization: `Bearer ${this.configAppService.wompiSecretKey}`,
+      'Content-Type': 'application/json',
+    };
+
+    return this.httpService.get(url, { headers }).pipe(
+      map(
+        (response) =>
+          response?.data?.data?.presigned_acceptance?.acceptance_token,
+      ),
       catchError((error) =>
         throwError(
           () => new UnprocessableEntityException(error.response?.data?.error),
