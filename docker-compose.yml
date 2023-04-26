@@ -1,0 +1,43 @@
+version: '3'
+services:
+  docker-db:
+    platform: linux/arm64/v8
+    image: 'postgres:15-alpine3.17'
+    container_name: db
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: deployinc
+    networks:
+      default:
+        ipv4_address: 172.22.0.2
+
+  web:
+    image: ride-hailing
+    container_name: ride-hailing
+    build: .
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: deployinc
+      POSTGRES_HOST: docker-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ride-hailing-db
+    volumes:
+      - .:/opt/ride-hailing
+    command: sh /opt/ride-hailing/script/docker-start.sh
+    depends_on:
+      - docker-db
+    tty: true
+    ports:
+      - '3000:3000'
+    networks:
+      default:
+        ipv4_address: 172.22.0.7
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
