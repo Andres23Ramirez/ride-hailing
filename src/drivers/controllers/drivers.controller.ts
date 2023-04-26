@@ -1,6 +1,6 @@
 import { Controller, Put, Body, Param, ParseIntPipe } from '@nestjs/common';
-import { FinishRideDto } from 'src/dtos/drivers.dto';
-import { DriversService } from '../../services/drivers/drivers.service';
+import { FinishRideDto } from 'src/drivers/dtos/drivers.dto';
+import { DriversService } from 'src/drivers/services/drivers.service';
 
 @Controller('drivers')
 export class DriversController {

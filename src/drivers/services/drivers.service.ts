@@ -4,13 +4,13 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { FinishRideDto } from 'src/dtos/drivers.dto';
-import { Rider } from 'src/entities/rider.entity';
-import { Ride } from '../../entities/ride.entity';
+import { FinishRideDto } from 'src/drivers/dtos/drivers.dto';
+import { Rider } from 'src/riders/entities/rider.entity';
+import { Ride } from 'src/riders/entities/ride.entity';
 import { RideStatus } from '../../enums/RideStatus';
 import { ConfigAppService } from 'src/config/config.service';
-import { TransactionDto } from 'src/dtos/transactions.dto';
-import { TransactionResponse } from 'src/interfaces/transactionResponse.interface';
+import { TransactionDto } from 'src/drivers/dtos/transactions.dto';
+import { TransactionResponse } from 'src/drivers/interfaces/transactionResponse.interface';
 import { catchError, Observable, throwError, map } from 'rxjs';
 
 @Injectable()

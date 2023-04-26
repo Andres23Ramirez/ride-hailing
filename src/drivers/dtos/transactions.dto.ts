@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsEmail, IsNumber } from 'class-validator';
-import { PaymentMethodDto } from './paymentMethod.dto';
+import { PaymentMethodDto } from 'src/drivers/dtos/paymentMethod.dto';
 
 export class TransactionDto {
   @IsNotEmpty()

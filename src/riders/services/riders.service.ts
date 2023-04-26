@@ -1,11 +1,11 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { Ride } from 'src/entities/ride.entity';
-import { Driver } from 'src/entities/driver.entity';
-import { Rider } from 'src/entities/rider.entity';
-import { RequestRideDto } from 'src/dtos/riders.dto';
-import { PaymentSourceDto } from 'src/dtos/paymentSourceResponse.dto';
-import { PaymentSourceResponse } from 'src/interfaces/paymentSource.interface';
+import { Ride } from 'src/riders/entities/ride.entity';
+import { Driver } from 'src/drivers/entities/driver.entity';
+import { Rider } from 'src/riders/entities/rider.entity';
+import { RequestRideDto } from 'src/riders/dtos/riders.dto';
+import { PaymentSourceDto } from 'src/riders/dtos/paymentSourceResponse.dto';
+import { PaymentSourceResponse } from 'src/riders/interfaces/paymentSource.interface';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { ConfigAppService } from 'src/config/config.service';
