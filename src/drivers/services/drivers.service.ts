@@ -13,8 +13,8 @@ import { TransactionDto } from 'src/drivers/dtos/transactions.dto';
 import { TransactionResponse } from 'src/drivers/interfaces/transactionResponse.interface';
 import { catchError, Observable, throwError, map } from 'rxjs';
 
-import { RidersService } from 'src/riders/services/riders.service';
 import { Driver } from '../entities/driver.entity';
+import { RidersService } from 'src/riders/services/riders.service';
 
 @Injectable()
 export class DriversService {

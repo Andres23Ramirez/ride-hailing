@@ -15,14 +15,11 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { ConfigAppService } from 'src/config/config.service';
 import { RideStatus } from 'src/enums/RideStatus';
 
-import { DriversService } from 'src/drivers/services/drivers.service';
-
 @Injectable()
 export class RidersService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configAppService: ConfigAppService,
-    private readonly driversService: DriversService,
   ) {}
 
   private rides: Ride[] = [
@@ -73,7 +70,24 @@ export class RidersService {
       paymentSourceId: 53239,
     },
   ];
-  private drivers: Driver[] = this.driversService.getAllDrivers();
+  private drivers: Driver[] = [
+    {
+      id: 1,
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      email: 'juan.perez@example.com',
+      phoneNumber: '555-1234',
+      rating: 4.5,
+    },
+    {
+      id: 2,
+      firstName: 'Maria',
+      lastName: 'Gonzalez',
+      email: 'maria.gonzalez@example.com',
+      phoneNumber: '555-5678',
+      rating: 4.8,
+    },
+  ];
 
   getAllRides() {
     return this.rides;
