@@ -16,16 +16,18 @@ services:
   web:
     image: ride-hailing
     container_name: ride-hailing
-    build: .
+    build:
+      context: .
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: deployinc
       POSTGRES_HOST: docker-db
       POSTGRES_PORT: 5432
       POSTGRES_DB: ride-hailing-db
+      NODE_ENV: development
     volumes:
-      - .:/opt/ride-hailing
-    command: sh /opt/ride-hailing/script/docker-start.sh
+      - .:/usr/src/ride-hailing
+    command: sh /usr/src/ride-hailing/script/docker-start.sh
     depends_on:
       - docker-db
     tty: true
