@@ -16,4 +16,24 @@ export class ConfigAppService {
   get baseUrl(): string {
     return this.configService.get<string>('BASE_URL');
   }
+
+  get host(): string {
+    return this.configService.get<string>('HOST');
+  }
+
+  get port(): number {
+    return this.configService.get<number>('PORT');
+  }
+
+  get username(): string {
+    return this.configService.get<string>('USERNAME');
+  }
+
+  get password(): string {
+    return this.configService.get<string>('PASSWORD');
+  }
+
+  get database(): string {
+    return this.configService.get<string>('DATABASE');
+  }
 }
