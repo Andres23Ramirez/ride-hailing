@@ -8,6 +8,7 @@ import { RidersModule } from './riders/riders.module';
 import { DriversModule } from './drivers/drivers.module';
 import { DatabaseModule } from './database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SeederModule } from 'src/database/seeds/seeding.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     TypeOrmModule,
     RidersModule,
     DriversModule,
+    SeederModule,
   ],
   controllers: [],
   providers: [ConfigService, ConfigAppService],

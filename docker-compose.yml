@@ -25,6 +25,7 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_DB: ride-hailing-db
       NODE_ENV: development
+      SEED_DB: false
     volumes:
       - .:/usr/src/ride-hailing
     command: sh /usr/src/ride-hailing/script/docker-start.sh

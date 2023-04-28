@@ -12,13 +12,13 @@ export class Driver {
   @Column()
   lastName: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
   phoneNumber: string;
 
-  @Column()
+  @Column({ nullable: true })
   rating: number;
 
   @OneToMany(() => Ride, (ride) => ride.rider)
