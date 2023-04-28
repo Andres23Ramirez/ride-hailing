@@ -7,22 +7,24 @@ export class Ride {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column('decimal')
   startLocationLat: number;
 
-  @Column()
+  @Column('decimal')
   startLocationLng: number;
 
-  @Column()
+  @Column('decimal', { nullable: true })
   endLocationLat: number;
 
-  @Column()
+  @Column('decimal', { nullable: true })
   endLocationLng: number;
 
-  @ManyToOne(() => Rider, (rider: Rider) => rider.rides)
+  @ManyToOne(() => Rider, (rider: Rider) => rider.rides, { nullable: false })
   rider: Rider;
 
-  @ManyToOne(() => Driver, (driver: Driver) => driver.rides)
+  @ManyToOne(() => Driver, (driver: Driver) => driver.rides, {
+    nullable: false,
+  })
   driver: Driver;
 
   @Column()
@@ -31,6 +33,6 @@ export class Ride {
   @Column({ type: 'date' })
   startTime: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   endTime: Date;
 }

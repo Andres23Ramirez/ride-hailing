@@ -13,8 +13,8 @@ export class RidersController {
 
   @Post('payment-source')
   @ApiOperation({ summary: 'Create a payment source for a rider' })
-  createPaymentSource(@Body() payload: PaymentSourceDto) {
-    return this.ridersService.createPaymentSource(payload);
+  async createPaymentSource(@Body() payload: PaymentSourceDto) {
+    return await this.ridersService.createPaymentSource(payload);
   }
 
   @Post('/rides')

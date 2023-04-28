@@ -50,7 +50,6 @@ export class RidersService {
     }
 
     const driver = await this.findAvailableDriver();
-    console.log('Driver', driver);
     if (!driver) {
       throw new UnprocessableEntityException(
         'No available drivers at the moment',
@@ -59,10 +58,10 @@ export class RidersService {
 
     const newPayload = {
       ...payload,
-      driverId: driver.id,
+      rider: rider,
+      driver: driver,
       status: 'Started',
       startTime: new Date(),
-      endTime: new Date(),
     };
 
     const newRide = this.ridesRepo.create(newPayload);
@@ -71,11 +70,13 @@ export class RidersService {
       throw new UnprocessableEntityException('Ride could not create');
     }
 
-    if (!this.ridesRepo.save(newRide)) {
+    const newRideSaved = await this.ridesRepo.save(newRide);
+
+    if (!newRideSaved) {
       throw new UnprocessableEntityException('Ride could not saved');
     }
 
-    return newRide;
+    return newRideSaved;
   }
 
   async createPaymentSource(
@@ -169,6 +170,11 @@ export class RidersService {
       relations: ['rides'],
     });
 
-    return driver;
+    if (driver) {
+      return driver;
+    } else {
+      const [firstRow] = await this.driversRepo.find({ take: 1 });
+      return firstRow;
+    }
   }
 }

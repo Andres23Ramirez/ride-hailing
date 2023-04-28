@@ -9,11 +9,9 @@ export class RequestRideDto {
   @IsLongitude()
   readonly startLocationLng: number;
 
-  @IsNotEmpty()
   @IsLatitude()
   readonly endLocationLat: number;
 
-  @IsNotEmpty()
   @IsLongitude()
   readonly endLocationLng: number;
 
