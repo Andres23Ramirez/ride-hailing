@@ -42,7 +42,7 @@ export class RidersService {
         id: payload.riderId,
       },
     });
-    console.log('Driver', rider);
+
     if (!rider) {
       throw new UnprocessableEntityException(
         `The rider with id ${payload.riderId} does not exist.`,
@@ -78,16 +78,27 @@ export class RidersService {
     return newRide;
   }
 
-  createPaymentSource(
+  async createPaymentSource(
     payload: PaymentSourceDto,
-  ): Observable<PaymentSourceResponse> {
+  ): Promise<Observable<PaymentSourceResponse>> {
+    const rider = await this.ridersRepo.findOne({
+      where: {
+        email: payload.customer_email,
+      },
+    });
+
+    if (!rider) {
+      throw new UnprocessableEntityException(
+        `The rider with email: ${payload.customer_email} does not exist.`,
+      );
+    }
+
     const url = `${this.configAppService.baseUrl}payment_sources`;
     const headers = {
       Authorization: `Bearer ${this.configAppService.secretKey}`,
       'Content-Type': 'application/json',
     };
 
-    // Mezclando el payload con el acceptance_token obtenido
     return this.getAcceptanceToken().pipe(
       map((acceptanceToken) => ({
         ...payload,
@@ -103,6 +114,11 @@ export class RidersService {
           () => new UnprocessableEntityException(error.response?.data?.error),
         ),
       ),
+      switchMap(async (paymentSource: PaymentSourceResponse) => {
+        rider.paymentSourceId = paymentSource?.data?.id;
+        await this.ridersRepo.save(rider);
+        return paymentSource;
+      }),
     );
   }
 
