@@ -31,7 +31,7 @@ export class DriversService {
     driverId: number,
     { endLocationLat, endLocationLng }: FinishRideDto,
   ): Promise<Observable<TransactionResponse>> {
-    const ride = this.ridersService.getRideByDriverId(driverId);
+    const ride = await this.ridersService.getRideByDriverId(driverId);
 
     if (!ride) {
       throw new NotFoundException(
@@ -39,19 +39,21 @@ export class DriversService {
       );
     }
 
+    ride.endLocationLat = endLocationLat;
+    ride.endLocationLng = endLocationLng;
+    ride.status = RideStatus.Finished;
+    ride.endTime = new Date();
+    const paymentSourceId = ride.rider.paymentSourceId;
+    const customerEmail = ride.rider.email;
+
     const distance = this.calculateDistance(
-      (await ride).startLocationLat,
-      (await ride).startLocationLng,
+      ride.startLocationLat,
+      ride.startLocationLng,
       endLocationLat,
       endLocationLng,
     );
-    const duration = this.calculateDuration(
-      (await ride).startTime,
-      (await ride).endTime,
-    );
+    const duration = this.calculateDuration(ride.startTime, ride.endTime);
     const amountInCents = Math.round(this.calculateTotal(distance, duration));
-    const paymentSourceId = (await ride).rider.paymentSourceId;
-    const customerEmail = (await ride).rider.email;
     const payload = this.getPayload(
       amountInCents,
       paymentSourceId,
@@ -62,11 +64,6 @@ export class DriversService {
       Authorization: `Bearer ${this.configAppService.secretKey}`,
       'Content-Type': 'application/json',
     };
-
-    (await ride).endLocationLat = endLocationLat;
-    (await ride).endLocationLng = endLocationLng;
-    (await ride).status = RideStatus.Finished;
-    (await ride).endTime = new Date();
 
     const response = this.httpService.post(url, payload, { headers }).pipe(
       map((response) => response?.data),
@@ -126,7 +123,8 @@ export class DriversService {
   }
 
   private calculateDuration(startTime: Date, endTime: Date): number {
-    const diffInMs = endTime.getTime() - startTime.getTime();
+    const startDateTime = new Date(startTime);
+    const diffInMs = endTime.getTime() - startDateTime.getTime();
     const diffInMinutes = diffInMs / (1000 * 60);
 
     return diffInMinutes;

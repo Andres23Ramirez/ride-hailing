@@ -21,6 +21,6 @@ export class Driver {
   @Column({ nullable: true })
   rating: number;
 
-  @OneToMany(() => Ride, (ride) => ride.rider)
+  @OneToMany(() => Ride, (ride) => ride.driver)
   rides: Ride[];
 }

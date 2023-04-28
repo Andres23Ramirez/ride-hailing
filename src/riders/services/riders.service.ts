@@ -126,9 +126,10 @@ export class RidersService {
   async getRideByDriverId(driverId: number): Promise<Ride> {
     const ride = await this.ridesRepo.findOne({
       where: {
-        id: driverId,
+        driver: { id: driverId },
         status: RideStatus.Started,
       },
+      relations: ['rider'],
     });
 
     if (!ride) {
