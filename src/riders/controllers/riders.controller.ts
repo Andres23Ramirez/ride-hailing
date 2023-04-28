@@ -19,7 +19,7 @@ export class RidersController {
 
   @Post('/rides')
   @ApiOperation({ summary: 'Request a ride' })
-  requestRide(@Body() payload: RequestRideDto): Ride {
-    return this.ridersService.requestRide(payload);
+  async requestRide(@Body() payload: RequestRideDto): Promise<Ride> {
+    return await this.ridersService.requestRide(payload);
   }
 }

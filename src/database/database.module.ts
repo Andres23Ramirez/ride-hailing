@@ -18,6 +18,7 @@ import { ConfigAppService } from 'src/config/config.service';
         password: configAppService.password,
         database: configAppService.database,
         synchronize: true,
+        autoLoadEntities: true,
       }),
       inject: [ConfigAppService],
     }),

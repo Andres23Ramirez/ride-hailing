@@ -6,7 +6,6 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { FinishRideDto } from 'src/drivers/dtos/drivers.dto';
 import { Rider } from 'src/riders/entities/rider.entity';
-import { Ride } from 'src/riders/entities/ride.entity';
 import { RideStatus } from '../../enums/RideStatus';
 import { ConfigAppService } from 'src/config/config.service';
 import { TransactionDto } from 'src/drivers/dtos/transactions.dto';
@@ -15,6 +14,8 @@ import { catchError, Observable, throwError, map } from 'rxjs';
 
 import { Driver } from '../entities/driver.entity';
 import { RidersService } from 'src/riders/services/riders.service';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class DriversService {
@@ -22,33 +23,14 @@ export class DriversService {
     private readonly httpService: HttpService,
     private readonly configAppService: ConfigAppService,
     private readonly ridersService: RidersService,
+    @InjectRepository(Rider) private ridersRepo: Repository<Rider>,
+    @InjectRepository(Driver) private driversRepo: Repository<Driver>,
   ) {}
 
-  private riders: Rider[] = this.ridersService.getAllRiders();
-  private rides: Ride[] = this.ridersService.getAllRides();
-  private drivers: Driver[] = [
-    {
-      id: 1,
-      firstName: 'Juan',
-      lastName: 'Pérez',
-      email: 'juan.perez@example.com',
-      phoneNumber: '555-1234',
-      rating: 4.5,
-    },
-    {
-      id: 2,
-      firstName: 'Maria',
-      lastName: 'Gonzalez',
-      email: 'maria.gonzalez@example.com',
-      phoneNumber: '555-5678',
-      rating: 4.8,
-    },
-  ];
-
-  finishRide(
+  async finishRide(
     driverId: number,
     { endLocationLat, endLocationLng }: FinishRideDto,
-  ): Observable<TransactionResponse> {
+  ): Promise<Observable<TransactionResponse>> {
     const ride = this.ridersService.getRideByDriverId(driverId);
 
     if (!ride) {
@@ -58,15 +40,18 @@ export class DriversService {
     }
 
     const distance = this.calculateDistance(
-      ride.startLocationLat,
-      ride.startLocationLng,
+      (await ride).startLocationLat,
+      (await ride).startLocationLng,
       endLocationLat,
       endLocationLng,
     );
-    const duration = this.calculateDuration(ride.startTime, ride.endTime);
+    const duration = this.calculateDuration(
+      (await ride).startTime,
+      (await ride).endTime,
+    );
     const amountInCents = Math.round(this.calculateTotal(distance, duration));
-    const paymentSourceId = this.getPaymentSourceIdByRiderId(ride.riderId);
-    const customerEmail = this.getRiderById(ride.riderId).email;
+    const paymentSourceId = (await ride).rider.paymentSourceId;
+    const customerEmail = (await ride).rider.email;
     const payload = this.getPayload(
       amountInCents,
       paymentSourceId,
@@ -78,10 +63,10 @@ export class DriversService {
       'Content-Type': 'application/json',
     };
 
-    ride.endLocationLat = endLocationLat;
-    ride.endLocationLng = endLocationLng;
-    ride.status = RideStatus.Finished;
-    ride.endTime = new Date();
+    (await ride).endLocationLat = endLocationLat;
+    (await ride).endLocationLng = endLocationLng;
+    (await ride).status = RideStatus.Finished;
+    (await ride).endTime = new Date();
 
     const response = this.httpService.post(url, payload, { headers }).pipe(
       map((response) => response?.data),
@@ -96,7 +81,7 @@ export class DriversService {
   }
 
   getAllDrivers() {
-    return this.drivers;
+    return this.driversRepo.find();
   }
 
   private getPayload(
@@ -112,21 +97,6 @@ export class DriversService {
       reference: (Math.random() + 1).toString(36).substring(7),
       payment_source_id: paymentSourceId,
     };
-  }
-
-  private getPaymentSourceIdByRiderId(riderId: number): number {
-    const rider = this.riders.find((rider) => rider.id === riderId);
-
-    if (!rider) {
-      throw new NotFoundException(`Rider with id ${riderId} not found`);
-    }
-
-    return rider.paymentSourceId;
-  }
-
-  private getRiderById(riderId: number): Rider {
-    const rider = this.riders.find((rider) => rider.id === riderId);
-    return rider;
   }
 
   private calculateDistance(

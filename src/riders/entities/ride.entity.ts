@@ -1,27 +1,29 @@
-import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
+import { Driver } from 'src/drivers/entities/driver.entity';
+import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm';
+import { Rider } from './rider.entity';
 
 @Entity()
 export class Ride {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'number' })
+  @Column()
   startLocationLat: number;
 
-  @Column({ type: 'number' })
+  @Column()
   startLocationLng: number;
 
-  @Column({ type: 'number' })
+  @Column()
   endLocationLat: number;
 
-  @Column({ type: 'number' })
+  @Column()
   endLocationLng: number;
 
-  @Column({ type: 'number' })
-  riderId: number;
+  @ManyToOne(() => Rider, (rider: Rider) => rider.rides)
+  rider: Rider;
 
-  @Column({ type: 'number' })
-  driverId: number;
+  @ManyToOne(() => Driver, (driver: Driver) => driver.rides)
+  driver: Driver;
 
   @Column()
   status: string;

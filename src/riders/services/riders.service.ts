@@ -4,14 +4,17 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Not, Repository } from 'typeorm';
+
 import { Ride } from 'src/riders/entities/ride.entity';
 import { Driver } from 'src/drivers/entities/driver.entity';
 import { Rider } from 'src/riders/entities/rider.entity';
 import { RequestRideDto } from 'src/riders/dtos/riders.dto';
 import { PaymentSourceDto } from 'src/riders/dtos/paymentSourceResponse.dto';
 import { PaymentSourceResponse } from 'src/riders/interfaces/paymentSource.interface';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
 import { ConfigAppService } from 'src/config/config.service';
 import { RideStatus } from 'src/enums/RideStatus';
 
@@ -20,118 +23,59 @@ export class RidersService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configAppService: ConfigAppService,
+    @InjectRepository(Ride) private ridesRepo: Repository<Ride>,
+    @InjectRepository(Rider) private ridersRepo: Repository<Rider>,
+    @InjectRepository(Driver) private driversRepo: Repository<Driver>,
   ) {}
 
-  private rides: Ride[] = [
-    {
-      id: 1,
-      startLocationLat: 4.65,
-      startLocationLng: -74.05,
-      endLocationLat: 4.6,
-      endLocationLng: -74.08,
-      riderId: 1,
-      driverId: 2,
-      status: 'Started',
-      startTime: new Date('2022-05-01T12:00:00Z'),
-      endTime: new Date('2022-05-01T12:30:00Z'),
-    },
-    {
-      id: 2,
-      startLocationLat: 4.7,
-      startLocationLng: -74.05,
-      endLocationLat: 4.8,
-      endLocationLng: -74.1,
-      riderId: 2,
-      driverId: 1,
-      status: 'Finished',
-      startTime: new Date('2022-05-01T13:00:00Z'),
-      endTime: new Date('2022-05-01T13:30:00Z'),
-    },
-    {
-      id: 3,
-      startLocationLat: 4.6,
-      startLocationLng: -74.1,
-      endLocationLat: 4.55,
-      endLocationLng: -74.05,
-      riderId: 1,
-      driverId: 2,
-      status: 'Finished',
-      startTime: new Date('2022-05-01T14:00:00Z'),
-      endTime: null,
-    },
-  ];
-  private riders: Rider[] = [
-    {
-      id: 1,
-      firstName: 'Pedro',
-      lastName: 'Pérez',
-      email: 'pepito_perezasadaqwef@example.com',
-      phoneNumber: '555-9876',
-      paymentSourceId: 53239,
-    },
-  ];
-  private drivers: Driver[] = [
-    {
-      id: 1,
-      firstName: 'Juan',
-      lastName: 'Pérez',
-      email: 'juan.perez@example.com',
-      phoneNumber: '555-1234',
-      rating: 4.5,
-    },
-    {
-      id: 2,
-      firstName: 'Maria',
-      lastName: 'Gonzalez',
-      email: 'maria.gonzalez@example.com',
-      phoneNumber: '555-5678',
-      rating: 4.8,
-    },
-  ];
-
   getAllRides() {
-    return this.rides;
+    return this.ridesRepo.find();
   }
 
   getAllRiders() {
-    return this.riders;
+    return this.ridersRepo.find();
   }
 
-  requestRide(payload: RequestRideDto): Ride {
-    const driver = this.findAvailableDriver();
+  async requestRide(payload: RequestRideDto): Promise<Ride> {
+    const rider = await this.ridersRepo.findOne({
+      where: {
+        id: payload.riderId,
+      },
+    });
+    console.log('Driver', rider);
+    if (!rider) {
+      throw new UnprocessableEntityException(
+        `The rider with id ${payload.riderId} does not exist.`,
+      );
+    }
+
+    const driver = await this.findAvailableDriver();
+    console.log('Driver', driver);
     if (!driver) {
       throw new UnprocessableEntityException(
         'No available drivers at the moment',
       );
     }
 
-    const {
-      startLocationLat,
-      startLocationLng,
-      endLocationLat,
-      endLocationLng,
-      riderId,
-    } = payload;
-
-    const ride: Ride = {
-      id: this.rides.length + 1,
-      startLocationLat,
-      startLocationLng,
-      endLocationLat,
-      endLocationLng,
-      riderId,
+    const newPayload = {
+      ...payload,
       driverId: driver.id,
       status: 'Started',
       startTime: new Date(),
       endTime: new Date(),
     };
-    if (!ride) {
+
+    const newRide = this.ridesRepo.create(newPayload);
+
+    if (!newRide) {
       throw new UnprocessableEntityException('Ride could not create');
     }
 
-    this.rides.push(ride);
+    if (!this.ridesRepo.save(newRide)) {
+      throw new UnprocessableEntityException('Ride could not saved');
+    }
 
-    return ride;
+    return newRide;
   }
 
   createPaymentSource(
@@ -162,11 +106,13 @@ export class RidersService {
     );
   }
 
-  getRideByDriverId(driverId: number): Ride {
-    const ride = this.rides.find(
-      (ride) =>
-        ride.driverId === driverId && ride.status === RideStatus.Started,
-    );
+  async getRideByDriverId(driverId: number): Promise<Ride> {
+    const ride = await this.ridesRepo.findOne({
+      where: {
+        id: driverId,
+        status: RideStatus.Started,
+      },
+    });
 
     if (!ride) {
       throw new NotFoundException(
@@ -197,12 +143,16 @@ export class RidersService {
     );
   }
 
-  private findAvailableDriver(): Driver {
-    return this.drivers.find((driver) => {
-      const isOnRide = this.rides.some(
-        (ride) => ride.driverId === driver.id && ride.status !== 'Finished',
-      );
-      return !isOnRide;
+  private async findAvailableDriver(): Promise<Driver> {
+    const driver = await this.driversRepo.findOne({
+      where: {
+        rides: {
+          status: Not(RideStatus.Started),
+        },
+      },
+      relations: ['rides'],
     });
+
+    return driver;
   }
 }

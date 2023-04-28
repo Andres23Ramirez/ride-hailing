@@ -1,4 +1,5 @@
-import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
+import { Ride } from 'src/riders/entities/ride.entity';
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
 
 @Entity()
 export class Driver {
@@ -17,6 +18,9 @@ export class Driver {
   @Column()
   phoneNumber: string;
 
-  @Column({ type: 'number' })
+  @Column()
   rating: number;
+
+  @OneToMany(() => Ride, (ride) => ride.rider)
+  rides: Ride[];
 }
