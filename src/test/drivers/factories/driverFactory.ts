@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { Driver } from '../entities/driver.entity';
+import { Driver } from 'src/drivers/entities/driver.entity';
 
 export const createDriver = (): Driver => {
   const driver = new Driver();

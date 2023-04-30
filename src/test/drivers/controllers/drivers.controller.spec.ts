@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DriversController } from './drivers.controller';
+import { DriversController } from 'src/drivers/controllers/drivers.controller';
 import { DriversService } from 'src/drivers/services/drivers.service';
 import { FinishRideDto } from 'src/drivers/dtos/drivers.dto';
-import { expectedResult } from './transactionResponse.constant';
+import { expectedResult } from 'src/drivers/constants/transactionResponse.constant';
 
 describe('DriversController', () => {
   let controller: DriversController;

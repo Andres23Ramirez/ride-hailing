@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
-import { createDriver } from 'src/drivers/controllers/driverFactory';
-import { Ride } from '../entities/ride.entity';
+import { createDriver } from 'src/test/drivers/factories/driverFactory';
+import { Ride } from '../../../riders/entities/ride.entity';
 import { createRider } from './riderFactory';
 
 export const createRide = (): Ride => {

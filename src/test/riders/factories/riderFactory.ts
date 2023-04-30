@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { Rider } from '../entities/rider.entity';
+import { Rider } from 'src/riders/entities/rider.entity';
 
 export const createRider = (): Rider => {
   const rider = new Rider();

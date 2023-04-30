@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RidersController } from './riders.controller';
+
+import { RidersController } from 'src/riders/controllers/riders.controller';
 import { RidersService } from 'src/riders/services/riders.service';
 import { RequestRideDto } from 'src/riders/dtos/riders.dto';
 import { PaymentSourceDto } from 'src/riders/dtos/paymentSourceResponse.dto';
 import { Ride } from 'src/riders/entities/ride.entity';
-import { createRide } from './rideFactory';
-import { expectedPaymentSourceResponse } from './transactionResponse.constant';
+import { createRide } from 'src/test/riders/factories/rideFactory';
+import { expectedPaymentSourceResponse } from 'src/riders/constants/transactionResponse.constant';
 
 describe('RidersController', () => {
   let controller: RidersController;
